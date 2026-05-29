@@ -133,7 +133,27 @@ body {
 </div>
 <div class="toast" id="toast">복사 완료!</div>
 <script>
-function fmt(n,d=2){return Number(n).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fmt(n,d){
+  const v=parseFloat(n);
+  if(d!==undefined) return v.toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});
+  if(v===0) return '0';
+  // 유효숫자 기반으로 소수점 자리수 결정
+  const abs=Math.abs(v);
+  let digits;
+  if(abs>=10000) digits=2;
+  else if(abs>=1000) digits=3;
+  else if(abs>=100) digits=4;
+  else if(abs>=10) digits=5;
+  else if(abs>=1) digits=6;
+  else if(abs>=0.1) digits=7;
+  else if(abs>=0.01) digits=8;
+  else if(abs>=0.001) digits=9;
+  else digits=10;
+  // 불필요한 뒷자리 0 제거
+  const str=v.toFixed(digits);
+  const trimmed=str.replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'');
+  return parseFloat(trimmed).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:digits});
+}
 
 function copyText(str,label){
   if(navigator.clipboard&&navigator.clipboard.writeText){
@@ -288,7 +308,8 @@ function _doClose(){
 }
 function kpInput(c){
   if(c==='.'&&_kpVal.includes('.'))return;
-  if(_kpVal==='0'&&c!=='.')_kpVal='';
+  // 맨 앞 0 처리: 0 다음에 숫자 오면 0 제거 (단, 소수점 뒤는 유지)
+  if(_kpVal==='0'&&c!=='.'&&c!=='0')_kpVal='';
   _kpVal+=c;
   document.getElementById('keypad-display').textContent=_kpVal||'0';
   if(_kpTarget)_kpTarget.value=_kpVal;
