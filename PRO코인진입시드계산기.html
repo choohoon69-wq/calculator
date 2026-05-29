@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="시드 계산기"/>
+<meta name="theme-color" content="#0b1020"/>
+<title>진입 시드 계산기 PRO</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{
+  background:#0b1020;color:white;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+  padding:env(safe-area-inset-top,20px) env(safe-area-inset-right,16px) env(safe-area-inset-bottom,20px) env(safe-area-inset-left,16px);
+  min-height:100vh;
+}
+.container{max-width:480px;margin:0 auto;padding:16px;}
+h1{text-align:center;color:#4d7cff;font-size:22px;font-weight:700;margin-bottom:20px;letter-spacing:-0.5px;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.box{margin-bottom:0;}
+.full{grid-column:1/-1;}
+label{display:block;margin-bottom:6px;color:#aeb8d0;font-size:13px;font-weight:500;}
+input,select{
+  width:100%;padding:14px 16px;border:none;border-radius:14px;
+  background:#1a2344;color:white;font-size:16px;
+  -webkit-appearance:none;appearance:none;outline:none;
+}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234d7cff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;
+}
+input:focus,select:focus{border:1.5px solid #4d7cff;background:#1e2a50;}
+.input-wrap{position:relative;display:flex;align-items:center;gap:8px;}
+.input-wrap input{flex:1;}
+.input-copy-btn{
+  background:#1a2756;border:none;border-radius:10px;
+  color:#4d7cff;font-size:12px;font-weight:600;
+  padding:14px 12px;cursor:pointer;-webkit-appearance:none;
+  white-space:nowrap;flex-shrink:0;
+}
+.input-copy-btn:active{background:#253570;transform:scale(0.96);}
+button.main-btn{
+  width:100%;padding:17px;border:none;border-radius:16px;
+  background:linear-gradient(135deg,#3d6dff,#6a3dff);
+  color:white;font-size:17px;font-weight:700;cursor:pointer;margin-top:18px;
+  letter-spacing:-0.3px;-webkit-appearance:none;
+}
+button.main-btn:active{transform:scale(0.98);opacity:0.9;}
+.result{margin-top:20px;display:flex;flex-direction:column;gap:14px;}
+.section-title{font-size:13px;font-weight:600;color:#aeb8d0;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;}
+.card{background:#131c3d;padding:16px;border-radius:16px;border:1px solid rgba(255,255,255,0.06);}
+.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.row:last-child{border-bottom:none;}
+.row-label{font-size:14px;color:#8892b0;}
+.row-value{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;}
+.copy-btn{
+  background:#1a2756;border:none;border-radius:8px;
+  color:#4d7cff;font-size:12px;font-weight:600;
+  padding:5px 10px;cursor:pointer;-webkit-appearance:none;
+}
+.copy-btn:active{background:#253570;transform:scale(0.96);}
+.green{color:#47d764;}.red{color:#ff6767;}.yellow{color:#ffb84d;}.blue{color:#4d7cff;}
+.big-value{font-size:20px;}
+.badge{display:inline-block;padding:4px 10px;border-radius:8px;font-size:13px;font-weight:700;}
+.badge-long{background:rgba(71,215,100,0.15);color:#47d764;}
+.badge-short{background:rgba(255,103,103,0.15);color:#ff6767;}
+.toast{
+  position:fixed;bottom:calc(env(safe-area-inset-bottom,20px) + 20px);
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:#4d7cff;color:white;padding:12px 24px;
+  border-radius:12px;font-size:14px;font-weight:600;
+  opacity:0;transition:all 0.3s ease;z-index:999;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.note{font-size:12px;color:#4a5578;text-align:center;margin-top:8px;line-height:1.7;}
+.risk-hint{font-size:11px;color:#4a5578;margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>💰 진입 시드 계산기 PRO</h1>
+  <div class="grid">
+    <div class="box">
+      <label>포지션 방향</label>
+      <select id="side">
+        <option value="long">📈 LONG</option>
+        <option value="short">📉 SHORT</option>
+      </select>
+    </div>
+    <div class="box">
+      <label>거래소 수수료</label>
+      <select id="fee">
+        <option value="0.00025">Gate.io 0.025%</option>
+        <option value="0.000125">Gate.io 할인 0.0125%</option>
+        <option value="0.00009">Bitunix 0.009%</option>
+        <option value="0.00045">Hyperliquid 0.045%</option>
+      </select>
+    </div>
+    <div class="box">
+      <label>전체 시드 ($)</label>
+      <input type="number" id="capital" value="1000" inputmode="decimal"/>
+    </div>
+    <div class="box">
+      <label>리스크 제한 (%)</label>
+      <input type="number" id="riskPercent" value="1" inputmode="decimal"/>
+      <div class="risk-hint">수수료 포함 최대 손실 비율</div>
+    </div>
+    <div class="box">
+      <label>진입 배율</label>
+      <input type="number" id="leverage" value="10" inputmode="decimal"/>
+    </div>
+    <div class="box">
+      <label>진입 가격</label>
+      <div class="input-wrap">
+        <input type="number" id="entry" value="75540" inputmode="decimal"/>
+        <button class="input-copy-btn" onclick="copyInput()">복사</button>
+      </div>
+    </div>
+    <div class="box full">
+      <label>손절 폭 (%)</label>
+      <input type="number" id="stopPercent" value="0.37" inputmode="decimal"/>
+    </div>
+  </div>
+  <button class="main-btn" onclick="calculate()">실전 계산 시작</button>
+  <div class="result" id="result"></div>
+  <p class="note">※ 리스크% = 수수료 포함 최대 손실 · TP는 수수료 제외 순이익 · 시장가 기준</p>
+</div>
+<div class="toast" id="toast">복사 완료!</div>
+<script>
+function fmt(n,d=2){return Number(n).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+
+function copyText(str,label){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(str).then(()=>showToast(label+' 복사!'));
+  }else{
+    const el=document.createElement('textarea');
+    el.value=str;el.style.position='fixed';el.style.opacity='0';
+    document.body.appendChild(el);el.focus();el.select();
+    try{document.execCommand('copy');showToast(label+' 복사!');}catch(e){}
+    document.body.removeChild(el);
+  }
+}
+
+function copyInput(){
+  const val=document.getElementById('entry').value;
+  copyText(val,'진입가');
+}
+
+function copyVal(val,label){
+  copyText(String(parseFloat(val).toFixed(2)),label);
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+function row(label,value,cls,cv,cl){
+  return `<div class="row">
+    <span class="row-label">${label}</span>
+    <span class="row-value">
+      <span class="${cls||''}">${value}</span>
+      ${cv!==undefined?`<button class="copy-btn" onclick="copyVal('${cv}','${cl||label}')">복사</button>`:''}
+    </span>
+  </div>`;
+}
+
+function calculate(){
+  const side=document.getElementById('side').value;
+  const feeRate=parseFloat(document.getElementById('fee').value);
+  const capital=parseFloat(document.getElementById('capital').value);
+  const riskPercent=parseFloat(document.getElementById('riskPercent').value);
+  const leverage=parseFloat(document.getElementById('leverage').value);
+  const entry=parseFloat(document.getElementById('entry').value);
+  const stopPercentInput=parseFloat(document.getElementById('stopPercent').value);
+  const stopPercent=stopPercentInput/100;
+
+  const maxLoss=capital*(riskPercent/100);
+  const totalLossRatio=stopPercent+(feeRate*2);
+  const positionSize=maxLoss/totalLossRatio;
+  const requiredMargin=positionSize/leverage;
+  const totalFee=positionSize*feeRate*2;
+  const pureChartLoss=positionSize*stopPercent;
+  const totalLoss=pureChartLoss+totalFee;
+
+  const stopPrice=side==='long'?entry*(1-stopPercent):entry*(1+stopPercent);
+  const targetNet1=totalLoss*1.5;
+  const targetNet2=totalLoss*2;
+  const grossProfit1=targetNet1+totalFee;
+  const grossProfit2=targetNet2+totalFee;
+  const tpPercent1=grossProfit1/positionSize;
+  const tpPercent2=grossProfit2/positionSize;
+  const tp1Price=side==='long'?entry*(1+tpPercent1):entry*(1-tpPercent1);
+  const tp2Price=side==='long'?entry*(1+tpPercent2):entry*(1-tpPercent2);
+  const liquidationPrice=side==='long'?entry*(1-(1/leverage)):entry*(1+(1/leverage));
+
+  document.getElementById('result').innerHTML=`
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <span class="badge ${side==='long'?'badge-long':'badge-short'}">${side==='long'?'📈 LONG':'📉 SHORT'}</span>
+      <span style="font-size:12px;color:#4a5578;">리스크 ${fmt(riskPercent)}% = $${fmt(maxLoss)}</span>
+    </div>
+    ${row('필요 진입 시드','$'+fmt(requiredMargin),'blue big-value',requiredMargin,'진입시드')}
+    ${row('포지션 크기','$'+fmt(positionSize),'',positionSize,'포지션크기')}
+  </div>
+  <div class="card">
+    <div class="section-title">⚠️ 손절 분석</div>
+    ${row('손절가',fmt(stopPrice),'red',stopPrice,'손절가')}
+    ${row('왕복 수수료','$'+fmt(totalFee),'yellow')}
+    ${row('차트 순수 손실','-$'+fmt(pureChartLoss),'red',pureChartLoss,'순수손실')}
+    ${row('총 손실 (수수료포함)','-$'+fmt(totalLoss),'red big-value',totalLoss,'총손실')}
+  </div>
+  <div class="card">
+    <div class="section-title">🎯 TP1 &nbsp;<span style="font-size:11px;color:#4a5578;">1 : 1.5</span></div>
+    ${row('TP1 가격',fmt(tp1Price),'green',tp1Price,'TP1가격')}
+    ${row('수수료 제외 순이익','+$'+fmt(targetNet1),'green',targetNet1,'TP1순이익')}
+  </div>
+  <div class="card">
+    <div class="section-title">🚀 TP2 &nbsp;<span style="font-size:11px;color:#4a5578;">1 : 2</span></div>
+    ${row('TP2 가격',fmt(tp2Price),'green',tp2Price,'TP2가격')}
+    ${row('수수료 제외 순이익','+$'+fmt(targetNet2),'green',targetNet2,'TP2순이익')}
+  </div>
+  <div class="card">
+    <div class="section-title">📉 리스크 정보</div>
+    ${row('예상 청산가',fmt(liquidationPrice),'yellow',liquidationPrice,'청산가')}
+    ${row('진입 배율',fmt(leverage)+'배','')}
+    ${row('손절 폭',fmt(stopPercentInput)+'%','')}
+    ${row('리스크 제한',fmt(riskPercent)+'%','')}
+  </div>`;
+}
+calculate();
+</script>
+</body>
+</html>
